@@ -1,27 +1,43 @@
 <template>
   <div class="main">
     <h1>{{ msg }}</h1>
-    
+
     <div class="row">
-    <template v-for="(artist, index) in artists">
-        <div class="col s12 m3 l2">
-          <div class="card">
-            <div class="card-image">
-              <img v-bind:src="artworks[index]">
-              <span class="card-title"></span>
+      <template v-for="(artist, index) in artists">
+        <div class="col s12 m5 l3">
+
+          <v-card medium>
+            <div class="card-image waves-effect waves-block waves-light">
+              <img class="activator" :src="artworks[index]">
             </div>
             <div class="card-content">
-              <p>{{artist}}</p>
-              </div>
-              <div class="card-action">
-                <a href="#">Listen Now</a>
-              </div>
+              <span class="card-title activator grey-text text-darken-4">{{artist}}<i class="material-icons right">more_vert</i></span>
+              <p><a href="#">This is a link</a></p>
             </div>
+            <div class="card-reveal">
+              <span class="card-title grey-text text-darken-4">{{artist}}<i class="material-icons right">close</i></span>            
+              <v-collection>
+              <template v-for="song in songArray(index)">        
+                <v-collection-avatar :src="song[2]">
+                  <a :href="song[3]">
+                  <span class="title">{{song[0]}}</span>
+                  <p>{{toMinutes(song[1])}} <br>
+                   
+                  </p>
+                  </a> 
+                  <span slot="secondary"></span>
+                </v-collection-avatar>
+                
+              </template>
+              </v-collection>
+            </div>
+          </v-card>
           </div>
-      </template>
-    </div>
+        </template>
+      </div>
 
     </div>
+
   </template>
 
   <script>
@@ -30,23 +46,68 @@
       data () {
         return {
           msg: 'Welcome to Hearmusic',
-          json: null,
+          artistjson: null,
           artists: [],
-          artworks: []
+          artworks: [],
+          permalinks: [],
+          songs: []
+        }
+      },
+      methods: {
+        songArray: function (ind) {
+          return this.songs[ind]
+        },
+        toMinutes: function (time) {
+          var hours = Math.floor(time / 3600)
+          time = time - hours * 3600
+          var minutes = Math.floor(time / 60)
+          var seconds = time - minutes * 60
+          function strPadLeft (string, pad, length) {
+            return (new Array(length + 1).join(pad) + string).slice(-length)
+          }
+          var finalTime = strPadLeft(minutes, '0', 2) + ':' + strPadLeft(seconds, '0', 2)
+          return finalTime
         }
       },
       created () {
         var _this = this
         $.getJSON('https://api-v2.hearthis.at/feed/?type=popular&page=1&count=20', function (json) {
-          _this.json = json
+          _this.artistjson = json
           insertArtists()
+          getSongs(_this.permalinks)
         })
         var insertArtists = function () {
-          _this.json.forEach(track => {
+          _this.artistjson.forEach(track => {
             _this.artists.push(track.user.username)
             // _this.artworks.push(track.artwork_url)
             _this.artworks.push(track.user.avatar_url)
+            _this.permalinks.push(track.user.permalink)
           })
+          _this.artists = removeDuplicates(_this.artists)
+          _this.artworks = removeDuplicates(_this.artworks)
+          _this.permalinks = removeDuplicates(_this.permalinks)
+        }
+
+        var getSongs = function (links) {
+          links.forEach(function (value) {
+            var songjson = null
+            $.getJSON('https://api-v2.hearthis.at/' + value + '/?type=tracks&page=1&count=5', function (json) {
+              songjson = json
+              insertSongs()
+            })
+            var insertSongs = function () {
+              var allSongsByArtist = []
+              songjson.forEach(track => {
+                var song = []
+                song.push(track.title); song.push(track.duration); song.push(track.artwork_url); song.push(track.stream_url)
+                allSongsByArtist.push(song)
+              })
+              _this.songs.push(allSongsByArtist)
+            }
+          })
+        }
+        var removeDuplicates = function (array) {
+          return Array.from(new Set(array))
         }
       }
     }
@@ -69,10 +130,11 @@
     }
 
     a {
-      color: #42b983;
+      /*color: #42b983;*/
+      color: inherit;
     }
 
-    .card .card-image {
-      height: 200px;
+    .card .card-image img {
+      /*height: 200px;*/
     }
   </style>

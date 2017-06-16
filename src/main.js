@@ -4,8 +4,10 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 import 'jquery/dist/jquery.min.js'
-import 'materialize-css'
-import 'materialize-css/dist/css/materialize.css'
+// import 'materialize-css'
+// import 'materialize-css/dist/css/materialize.css'
+import Materials from 'vue-materials'
+Vue.use(Materials)
 
 Vue.config.productionTip = false
 

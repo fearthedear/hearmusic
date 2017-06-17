@@ -1,0 +1,10 @@
+{
+	"name": "hearmusic",
+  	"version": "1.0.0",
+  	"description": "view artists and play songs using the hearthis.at API",
+  	"author": "fearthedear <linuskinzel@gmail.com>",
+ 	"private": true,
+ 	"scripts": {
+   		"postinstall": "npm install express"
+ 	}
+}

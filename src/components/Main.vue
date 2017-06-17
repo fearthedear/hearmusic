@@ -2,29 +2,35 @@
   <div class="main">
     <h1>{{ msg }}</h1>
 
-    <div class="row">
-      <template v-for="artist in songs">
+    
+    
+    <div class="row maincontent">
+    <!-- <li v-for="xx in artistjson">{{xx}}</li> -->
+      <template v-for="artist_username in songs">
         <div class="col s12 m5 l3">
 
           <v-card medium>
             <div class="card-image waves-effect waves-block waves-light">
-              <img class="activator" :src="artist[0].user.avatar_url">
+              <img class="activator" :src="artist_username[0].user.avatar_url">
             </div>
             <div class="card-content">
-              <span class="card-title activator grey-text text-darken-4">{{artist[0].user.username}}<i class="material-icons right">more_vert</i></span>
-              <p></p>
+              <span class="card-title activator grey-text text-darken-4">{{artist_username[0].user.username}}</span>
+              <p>{{artist_username[0].genre}}
+              <br>
+              Tracks: {{ artist_username.length }}
+              <br>
+              Played: {{ playcount(artist_username) }}
+              </p>
             </div>
             <div class="card-reveal">
-              <span class="card-title grey-text text-darken-4">{{artist[0].user.username}}<i class="material-icons right">close</i></span>            
+              <span class="card-title grey-text text-darken-4">{{artist_username[0].user.username}}<i class="material-icons right">close</i></span>            
               <v-collection>
-              <template v-for="song in artist">        
-                <v-collection-avatar :src="song.artwork_url">
-                  <a :href="song.stream">
+              <template v-for="song in artist_username">        
+                <v-collection-avatar :src="song.artwork_url" class="songItem">
+                  <div v-on:click="changeSong(song.stream_url)" class="songlink">
                   <span class="title">{{song.title}}</span>
-                  <p>{{toMinutes(song.duration)}} <br>
-                   
-                  </p>
-                  </a> 
+                  <p>{{toMinutes(song.duration)}}</p>
+                   </div>
                   <span slot="secondary"></span>
                 </v-collection-avatar>
                 
@@ -35,7 +41,9 @@
           </div>
         </template>
       </div>
-
+      <footer class="hidden">
+            <iframe height="50px" :src="stream_playing"></iframe>
+      </footer>
     </div>
 
   </template>
@@ -48,9 +56,9 @@
           msg: 'Welcome to Hearmusic',
           artistjson: null,
           artists: [],
-          artworks: [],
           permalinks: [],
-          songs: {}
+          songs: {},
+          stream_playing: null
         }
       },
       methods: {
@@ -67,6 +75,18 @@
           }
           var finalTime = strPadLeft(minutes, '0', 2) + ':' + strPadLeft(seconds, '0', 2)
           return finalTime
+        },
+        changeSong: function (url) {
+          this.stream_playing = url
+          $('footer').removeClass('hidden')
+        },
+        playcount: function (allsongs) {
+          var plays = 0
+          allsongs.forEach(function (song) {
+            console.log(plays)
+            plays = plays + parseInt(song.playback_count)
+          })
+          return plays
         }
       },
       created () {
@@ -79,32 +99,27 @@
         var insertArtists = function () {
           _this.artistjson.forEach(track => {
             _this.artists.push(track.user.username)
-            // _this.artworks.push(track.artwork_url)
-            _this.artworks.push(track.user.avatar_url)
             _this.permalinks.push(track.user.permalink)
           })
           _this.artists = removeDuplicates(_this.artists)
-          _this.artworks = removeDuplicates(_this.artworks)
           _this.permalinks = removeDuplicates(_this.permalinks)
         }
 
         var getSongs = function (links) {
           links.forEach(function (value) {
             var songjson = null
-            $.getJSON('https://api-v2.hearthis.at/' + value + '/?type=tracks&page=1&count=5', function (json) {
+            $.getJSON('https://api-v2.hearthis.at/' + value + '/?type=tracks&page=1&count=20', function (json) {
               songjson = json
               insertSongs()
             })
             var insertSongs = function () {
               var allSongsByArtist = []
               songjson.forEach(track => {
-                // var song = {}
-                // song.push(track.title); song.push(track.duration); song.push(track.artwork_url); song.push(track.stream_url); song.push(track.user.username)
                 allSongsByArtist.push(track)
               })
-              // _this.songs.push(allSongsByArtist)
               var artist = allSongsByArtist[0].user.permalink
               _this.songs[artist] = allSongsByArtist
+              _this.$forceUpdate() // make vue realize object has changed.
             }
           })
         }
@@ -135,8 +150,24 @@
       /*color: #42b983;*/
       color: inherit;
     }
-
-    .card .card-image img {
-      /*height: 200px;*/
+    .songlink {
+      cursor: pointer;
+    }
+    .maincontent {
+      z-index: 1;
+    }
+    footer {
+      z-index: 2;
+      position: fixed; bottom: 0px; width: 100%; height: 26px; background-color: white;
+    }
+    iframe {
+      border: none;
+    }
+    .hidden {
+      display: none
+    }
+    .songItem {
+      text-align: left;
+      width: 100%;
     }
   </style>

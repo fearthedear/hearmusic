@@ -83,7 +83,6 @@
         playcount: function (allsongs) {
           var plays = 0
           allsongs.forEach(function (song) {
-            console.log(plays)
             plays = plays + parseInt(song.playback_count)
           })
           return plays

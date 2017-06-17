@@ -3,25 +3,25 @@
     <h1>{{ msg }}</h1>
 
     <div class="row">
-      <template v-for="(artist, index) in artists">
+      <template v-for="artist in songs">
         <div class="col s12 m5 l3">
 
           <v-card medium>
             <div class="card-image waves-effect waves-block waves-light">
-              <img class="activator" :src="artworks[index]">
+              <img class="activator" :src="artist[0].user.avatar_url">
             </div>
             <div class="card-content">
-              <span class="card-title activator grey-text text-darken-4">{{artist}}<i class="material-icons right">more_vert</i></span>
-              <p><a href="#">This is a link</a></p>
+              <span class="card-title activator grey-text text-darken-4">{{artist[0].user.username}}<i class="material-icons right">more_vert</i></span>
+              <p></p>
             </div>
             <div class="card-reveal">
-              <span class="card-title grey-text text-darken-4">{{artist}}<i class="material-icons right">close</i></span>            
+              <span class="card-title grey-text text-darken-4">{{artist[0].user.username}}<i class="material-icons right">close</i></span>            
               <v-collection>
-              <template v-for="song in songArray(index)">        
-                <v-collection-avatar :src="song[2]">
-                  <a :href="song[3]">
-                  <span class="title">{{song[0]}}</span>
-                  <p>{{toMinutes(song[1])}} <br>
+              <template v-for="song in artist">        
+                <v-collection-avatar :src="song.artwork_url">
+                  <a :href="song.stream">
+                  <span class="title">{{song.title}}</span>
+                  <p>{{toMinutes(song.duration)}} <br>
                    
                   </p>
                   </a> 
@@ -50,12 +50,12 @@
           artists: [],
           artworks: [],
           permalinks: [],
-          songs: []
+          songs: {}
         }
       },
       methods: {
-        songArray: function (ind) {
-          return this.songs[ind]
+        songArray: function (name) {
+          return this.songs.name
         },
         toMinutes: function (time) {
           var hours = Math.floor(time / 3600)
@@ -98,11 +98,13 @@
             var insertSongs = function () {
               var allSongsByArtist = []
               songjson.forEach(track => {
-                var song = []
-                song.push(track.title); song.push(track.duration); song.push(track.artwork_url); song.push(track.stream_url)
-                allSongsByArtist.push(song)
+                // var song = {}
+                // song.push(track.title); song.push(track.duration); song.push(track.artwork_url); song.push(track.stream_url); song.push(track.user.username)
+                allSongsByArtist.push(track)
               })
-              _this.songs.push(allSongsByArtist)
+              // _this.songs.push(allSongsByArtist)
+              var artist = allSongsByArtist[0].user.permalink
+              _this.songs[artist] = allSongsByArtist
             }
           })
         }
